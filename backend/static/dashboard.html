@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Telemetry Dashboard</title>
+<style>
+  :root {
+    --bg: #0b1220; --panel: #131c2e; --panel2: #18243b; --border: #25324d;
+    --text: #e6ecf5; --muted: #8b9bb8; --ok: #22c55e; --warn: #f59e0b; --crit: #ef4444; --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+           padding: 14px 22px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  header h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .2px; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .controls a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  .controls a:hover { text-decoration: underline; }
+  select, input, button { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+         border-radius: 6px; padding: 5px 8px; font: inherit; }
+  button { cursor: pointer; } button:hover { border-color: var(--accent); }
+  .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); } .dot.bad { background: var(--crit); }
+  main { padding: 18px 22px 40px; max-width: 1500px; margin: 0 auto; }
+  #banner { display: none; background: #3b1219; border: 1px solid var(--crit); color: #fecaca;
+            padding: 8px 12px; border-radius: 8px; margin-bottom: 14px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+  .card .value { font-size: 26px; font-weight: 650; margin-top: 2px; }
+  .card .hint { color: var(--muted); font-size: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .panel h2 { margin: 0 0 10px; font-size: 14px; font-weight: 650; display: flex; justify-content: space-between; align-items: center; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge.online { background: #0f3a22; color: #86efac; } .badge.offline { background: #3b1219; color: #fca5a5; }
+  .badge.critical { background: #3b1219; color: #fca5a5; } .badge.warning { background: #3d2a07; color: #fcd34d; }
+  .badge.resolved { background: #1c2a44; color: var(--muted); }
+  .bar { position: relative; width: 120px; height: 14px; background: #0d1626; border-radius: 7px; overflow: hidden; display: inline-block; vertical-align: middle; }
+  .bar > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip { display: flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border);
+          border-radius: 999px; cursor: pointer; user-select: none; font-size: 12px; background: var(--panel); }
+  .chip.off { opacity: .35; } .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .chartbox { position: relative; }
+  .chartbox canvas { width: 100%; height: 230px; display: block; }
+  .tip { position: absolute; pointer-events: none; display: none; background: #0a1020ee; border: 1px solid var(--border);
+         border-radius: 6px; padding: 6px 8px; font-size: 12px; z-index: 5; white-space: nowrap; }
+  .alerts { max-height: 340px; overflow: auto; }
+  .alert { display: grid; grid-template-columns: 82px 150px 1fr 120px; gap: 10px; padding: 7px 4px;
+           border-bottom: 1px solid var(--border); align-items: center; }
+  .alert:last-child { border-bottom: 0; }
+  .alert .msg { color: var(--text); } .alert .when { color: var(--muted); font-size: 12px; text-align: right; }
+  .empty { color: var(--muted); padding: 10px 2px; }
+  .thr { display: grid; grid-template-columns: 170px repeat(2, 120px) 1fr; gap: 8px 12px; align-items: center; }
+  .thr input { width: 100px; } .thr .h { color: var(--muted); font-size: 12px; }
+  #thrMsg { color: var(--muted); font-size: 12px; }
+  @media (max-width: 700px) { .alert { grid-template-columns: 70px 1fr; } .alert .when { text-align: left; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Network Telemetry Dashboard</h1>
+    <div class="sub">Live bandwidth and latency of routers and switches</div>
+  </div>
+  <div class="controls">
+    <span class="live"><span id="liveDot" class="dot"></span><span id="liveText">connecting...</span></span>
+    <label>Time range
+      <select id="range">
+        <option value="5">Last 5 min</option>
+        <option value="15" selected>Last 15 min</option>
+        <option value="60">Last 1 hour</option>
+        <option value="360">Last 6 hours</option>
+        <option value="1440">Last 24 hours</option>
+      </select>
+    </label>
+    <a href="/docs" target="_blank">API docs</a>
+    <a id="exportLink" href="/api/metrics/export?format=csv&minutes=60">Export CSV</a>
+    <a href="/metrics" target="_blank">Prometheus</a>
+  </div>
+</header>
+
+<main>
+  <div id="banner">Cannot reach the backend. Retrying...</div>
+
+  <section class="cards">
+    <div class="card"><div class="label">Devices online</div><div class="value" id="cDevices">-</div><div class="hint" id="cDevicesHint">&nbsp;</div></div>
+    <div class="card"><div class="label">Active alerts</div><div class="value" id="cAlerts">-</div><div class="hint" id="cAlertsHint">&nbsp;</div></div>
+    <div class="card"><div class="label">Total traffic</div><div class="value" id="cTraffic">-</div><div class="hint" id="cTrafficHint">&nbsp;</div></div>
+    <div class="card"><div class="label">Average latency</div><div class="value" id="cLatency">-</div><div class="hint">across online devices</div></div>
+    <div class="card"><div class="label">Busiest link</div><div class="value" id="cUtil">-</div><div class="hint">highest utilization now</div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Devices</h2>
+    <table>
+      <thead><tr><th>Device</th><th>Status</th><th>Utilization</th><th>Download</th><th>Upload</th><th>Latency</th><th>Loss</th><th>Alerts</th></tr></thead>
+      <tbody id="deviceRows"><tr><td colspan="8" class="empty">Waiting for data...</td></tr></tbody>
+    </table>
+  </section>
+
+  <div class="legend" id="legend"></div>
+  <section class="charts">
+    <div class="panel"><h2>Bandwidth utilization (% of link capacity)</h2><div class="chartbox" id="box_util"><canvas></canvas><div class="tip"></div></div></div>
+    <div class="panel"><h2>Latency (ms)</h2><div class="chartbox" id="box_lat"><canvas></canvas><div class="tip"></div></div></div>
+    <div class="panel"><h2>Throughput (Mbit/s, download + upload)</h2><div class="chartbox" id="box_thr"><canvas></canvas><div class="tip"></div></div></div>
+    <div class="panel"><h2>Packet loss (%)</h2><div class="chartbox" id="box_loss"><canvas></canvas><div class="tip"></div></div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Alerts <span class="sub" style="color:var(--muted);font-weight:400">active now and resolved in the last hour</span></h2>
+    <div class="alerts" id="alerts"><div class="empty">No alerts.</div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Alert thresholds <span id="thrMsg"></span></h2>
+    <div class="thr" id="thr"></div>
+    <div style="margin-top:10px"><button id="thrSave">Save thresholds</button></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const COLORS = ["#38bdf8", "#a78bfa", "#34d399", "#fbbf24", "#f472b6", "#fb923c", "#60a5fa", "#4ade80",
+                "#e879f9", "#facc15", "#2dd4bf", "#f87171"];
+const state = { devices: [], hidden: new Set(), thresholds: null, series: {}, meta: {}, busy: false };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const colorOf = id => COLORS[Math.max(0, state.devices.indexOf(id)) % COLORS.length];
+
+function fmtBps(v) {
+  if (v == null) return "-";
+  if (v >= 1e9) return (v / 1e9).toFixed(2) + " Gbit/s";
+  if (v >= 1e6) return (v / 1e6).toFixed(1) + " Mbit/s";
+  if (v >= 1e3) return (v / 1e3).toFixed(0) + " kbit/s";
+  return v.toFixed(0) + " bit/s";
+}
+const fmtNum = (v, d = 1, unit = "") => v == null ? "-" : v.toFixed(d) + unit;
+const fmtClock = ms => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+function fmtDur(s) {
+  s = Math.round(s);
+  if (s < 60) return s + "s";
+  if (s < 3600) return Math.floor(s / 60) + "m " + (s % 60) + "s";
+  return Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m";
+}
+const sevColor = u => u >= 90 ? "var(--crit)" : u >= 70 ? "var(--warn)" : "var(--ok)";
+
+async function api(path, options) {
+  const r = await fetch(path, options);
+  if (!r.ok) {
+    let detail = r.statusText;
+    try { detail = (await r.json()).detail || detail; } catch (e) {}
+    throw new Error(detail);
+  }
+  return r.json();
+}
+
+/* ---------------------------------------------------------------- charts */
+class LineChart {
+  constructor(boxId, opts) {
+    this.box = $(boxId); this.canvas = this.box.querySelector("canvas"); this.tip = this.box.querySelector(".tip");
+    this.opts = opts; this.data = null; this.hover = null;
+    this.canvas.addEventListener("mousemove", e => { this.hover = e; this.draw(); });
+    this.canvas.addEventListener("mouseleave", () => { this.hover = null; this.draw(); });
+  }
+  set(data) { this.data = data; this.draw(); }
+  niceMax(v) {
+    if (v <= 0) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  draw() {
+    const c = this.canvas, dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    if (!w || !h) return;
+    if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const pad = { l: 48, r: 10, t: 8, b: 22 };
+    const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+    const d = this.data;
+    g.font = "11px system-ui, sans-serif";
+    if (!d) return;
+    const { tMin, tMax, series, gapMs } = d;
+    const lines = [];
+    let dataMax = 0;
+    for (const id of Object.keys(series)) {
+      if (state.hidden.has(id)) continue;
+      const pts = series[id].filter(p => p.v != null);
+      pts.forEach(p => { if (p.v > dataMax) dataMax = p.v; });
+      lines.push({ id, pts: series[id] });
+    }
+    const thr = (this.opts.thresholds && state.thresholds) ? this.opts.thresholds(state.thresholds) : [];
+    let yMax = Math.max(dataMax * 1.1, ...thr.map(t => t.value * 1.08), this.opts.minMax || 1);
+    yMax = this.niceMax(yMax);
+    const X = t => pad.l + (t - tMin) / (tMax - tMin) * pw;
+    const Y = v => pad.t + ph - v / yMax * ph;
+
+    // grid + y labels
+    g.strokeStyle = "#25324d"; g.fillStyle = "#8b9bb8"; g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (let i = 0; i <= 4; i++) {
+      const v = yMax * i / 4, y = Math.round(Y(v)) + .5;
+      g.beginPath(); g.moveTo(pad.l, y); g.lineTo(w - pad.r, y); g.stroke();
+      g.fillText(v >= 100 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, ""), pad.l - 6, y);
+    }
+    // x labels
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let i = 0; i <= 4; i++) {
+      const t = tMin + (tMax - tMin) * i / 4;
+      g.fillText(fmtClock(t), Math.min(Math.max(X(t), pad.l + 24), w - pad.r - 24), h - pad.b + 5);
+    }
+    // thresholds
+    g.setLineDash([5, 4]); g.lineWidth = 1;
+    for (const t of thr) {
+      g.strokeStyle = t.color; const y = Y(t.value);
+      g.beginPath(); g.moveTo(pad.l, y); g.lineTo(w - pad.r, y); g.stroke();
+    }
+    g.setLineDash([]);
+    // lines
+    g.save(); g.beginPath(); g.rect(pad.l, pad.t, pw, ph); g.clip();
+    for (const ln of lines) {
+      g.strokeStyle = colorOf(ln.id); g.lineWidth = 1.8; g.lineJoin = "round";
+      let open = false, prev = null;
+      g.beginPath();
+      for (const p of ln.pts) {
+        if (p.v == null) { open = false; prev = null; continue; }
+        const x = X(p.t), y = Y(p.v);
+        if (!open || (prev !== null && p.t - prev > gapMs)) g.moveTo(x, y); else g.lineTo(x, y);
+        open = true; prev = p.t;
+      }
+      g.stroke();
+    }
+    g.restore();
+
+    // hover tooltip
+    if (this.hover) {
+      const rect = c.getBoundingClientRect();
+      const mx = this.hover.clientX - rect.left;
+      if (mx >= pad.l && mx <= w - pad.r) {
+        const t = tMin + (mx - pad.l) / pw * (tMax - tMin);
+        g.strokeStyle = "#8b9bb8"; g.lineWidth = 1; g.setLineDash([2, 3]);
+        g.beginPath(); g.moveTo(mx, pad.t); g.lineTo(mx, pad.t + ph); g.stroke(); g.setLineDash([]);
+        let html = `<div style="color:#8b9bb8;margin-bottom:3px">${fmtClock(t)}</div>`, any = false;
+        for (const ln of lines) {
+          let best = null;
+          for (const p of ln.pts) { if (p.v == null) continue; if (best === null || Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; }
+          if (best && Math.abs(best.t - t) <= gapMs) {
+            any = true;
+            html += `<div><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colorOf(ln.id)};margin-right:6px"></i>${esc(ln.id)}: <b>${best.v.toFixed(this.opts.decimals ?? 1)}${this.opts.unit || ""}</b></div>`;
+          }
+        }
+        if (any) {
+          this.tip.innerHTML = html; this.tip.style.display = "block";
+          const tw = this.tip.offsetWidth;
+          this.tip.style.left = (mx + 14 + tw > w ? mx - tw - 14 : mx + 14) + "px";
+          this.tip.style.top = "6px";
+        } else this.tip.style.display = "none";
+      }
+    } else this.tip.style.display = "none";
+  }
+}
+
+const charts = {
+  util: new LineChart("box_util", { unit: "%", minMax: 100, decimals: 1,
+    thresholds: t => [{ value: t.utilization_pct.warning, color: "#f59e0b" }, { value: t.utilization_pct.critical, color: "#ef4444" }] }),
+  lat: new LineChart("box_lat", { unit: " ms", minMax: 20, decimals: 1,
+    thresholds: t => [{ value: t.latency_ms.warning, color: "#f59e0b" }, { value: t.latency_ms.critical, color: "#ef4444" }] }),
+  thr: new LineChart("box_thr", { unit: " Mbit/s", minMax: 10, decimals: 1 }),
+  loss: new LineChart("box_loss", { unit: " %", minMax: 5, decimals: 2,
+    thresholds: t => [{ value: t.packet_loss_pct.warning, color: "#f59e0b" }, { value: t.packet_loss_pct.critical, color: "#ef4444" }] }),
+};
+
+function updateCharts(resp) {
+  const gapMs = Math.max(7000, (resp.resolution_s || 0) * 3000);
+  const build = fn => {
+    const out = {};
+    for (const [id, pts] of Object.entries(resp.series)) out[id] = pts.map(p => ({ t: p.ts_ms, v: fn(p) }));
+    return { tMin: resp.start_ms, tMax: resp.end_ms, series: out, gapMs };
+  };
+  charts.util.set(build(p => p.util_pct));
+  charts.lat.set(build(p => p.latency_ms));
+  charts.thr.set(build(p => (p.rx_bps + p.tx_bps) / 1e6));
+  charts.loss.set(build(p => p.loss_pct));
+}
+
+/* ------------------------------------------------------------- rendering */
+function renderLegend() {
+  $("legend").innerHTML = state.devices.map(id =>
+    `<span class="chip ${state.hidden.has(id) ? "off" : ""}" data-id="${esc(id)}"><i style="background:${colorOf(id)}"></i>${esc(id)}</span>`).join("");
+  $("legend").querySelectorAll(".chip").forEach(el => el.onclick = () => {
+    const id = el.dataset.id;
+    state.hidden.has(id) ? state.hidden.delete(id) : state.hidden.add(id);
+    renderLegend(); Object.values(charts).forEach(c => c.draw());
+  });
+}
+
+function renderSummary(s) {
+  $("cDevices").textContent = `${s.devices_online} / ${s.devices_total}`;
+  $("cDevicesHint").textContent = s.devices_offline ? `${s.devices_offline} offline` : "all reachable";
+  $("cAlerts").textContent = s.alerts_active;
+  $("cAlerts").style.color = s.alerts_critical ? "var(--crit)" : s.alerts_warning ? "var(--warn)" : "var(--ok)";
+  $("cAlertsHint").textContent = `${s.alerts_critical} critical, ${s.alerts_warning} warning`;
+  $("cTraffic").textContent = fmtBps(s.total_rx_bps + s.total_tx_bps);
+  $("cTrafficHint").textContent = `down ${fmtBps(s.total_rx_bps)}, up ${fmtBps(s.total_tx_bps)}`;
+  $("cLatency").textContent = fmtNum(s.avg_latency_ms, 1, " ms");
+  $("cUtil").textContent = fmtNum(s.max_utilization_pct, 0, "%");
+}
+
+function renderDevices(list) {
+  if (!list.length) { $("deviceRows").innerHTML = '<tr><td colspan="8" class="empty">No devices yet. Start the agents.</td></tr>'; return; }
+  $("deviceRows").innerHTML = list.map(d => {
+    const l = d.latest || {};
+    const u = l.util_pct;
+    const bar = u == null ? "-" : `<span class="bar"><span style="width:${Math.min(100, u)}%;background:${sevColor(u)}"></span></span> <span class="num">${u.toFixed(0)}%</span>`;
+    const alerts = d.active_alerts ? `<span class="badge ${d.worst_severity}">${d.active_alerts}</span>` : '<span style="color:var(--muted)">0</span>';
+    return `<tr>
+      <td><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${colorOf(d.device_id)};margin-right:8px"></i><b>${esc(d.device_id)}</b> <span style="color:var(--muted)">${esc(d.device_type)}</span></td>
+      <td><span class="badge ${d.status}">${d.status}</span></td>
+      <td>${bar}</td><td class="num">${fmtBps(l.rx_bps)}</td><td class="num">${fmtBps(l.tx_bps)}</td>
+      <td class="num">${fmtNum(l.latency_ms, 1, " ms")}</td><td class="num">${fmtNum(l.loss_pct, 2, "%")}</td><td>${alerts}</td></tr>`;
+  }).join("");
+}
+
+function renderAlerts(list) {
+  const rank = a => a.state === "active" ? 0 : 1;
+  list.sort((a, b) => rank(a) - rank(b) || b.opened_ms - a.opened_ms);
+  if (!list.length) { $("alerts").innerHTML = '<div class="empty">No alerts in the last hour. The network looks healthy.</div>'; return; }
+  $("alerts").innerHTML = list.slice(0, 60).map(a => `
+    <div class="alert">
+      <span class="badge ${a.state === "active" ? a.severity : "resolved"}">${a.state === "active" ? a.severity : "resolved"}</span>
+      <b>${esc(a.device_id)}</b>
+      <span class="msg">${esc(a.message)}${a.peak_value != null && a.metric !== "device_offline" ? ` <span style="color:var(--muted)">(peak ${a.peak_value.toFixed(1)})</span>` : ""}</span>
+      <span class="when">${fmtClock(a.opened_ms)} &middot; ${fmtDur(a.duration_s)}</span>
+    </div>`).join("");
+}
+
+const THR_LABELS = { utilization_pct: ["Utilization", "%"], latency_ms: ["Latency", "ms"], packet_loss_pct: ["Packet loss", "%"] };
+function renderThresholds(t) {
+  const box = $("thr");
+  if (box.dataset.ready) return;           // do not overwrite while the user is typing
+  box.dataset.ready = "1";
+  let html = '<span class="h">Metric</span><span class="h">Warning at</span><span class="h">Critical at</span><span></span>';
+  for (const [k, [label, unit]] of Object.entries(THR_LABELS)) {
+    html += `<span>${label} (${unit})</span><input type="number" step="any" id="thr_${k}_warning" value="${t[k].warning}"><input type="number" step="any" id="thr_${k}_critical" value="${t[k].critical}"><span></span>`;
+  }
+  box.innerHTML = html;
+}
+
+async function saveThresholds() {
+  const body = {};
+  for (const k of Object.keys(THR_LABELS))
+    body[k] = { warning: parseFloat($(`thr_${k}_warning`).value), critical: parseFloat($(`thr_${k}_critical`).value) };
+  try {
+    const r = await api("/api/thresholds", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    state.thresholds = r.thresholds; $("thrMsg").textContent = "saved"; $("thrMsg").style.color = "var(--ok)";
+  } catch (e) { $("thrMsg").textContent = "not saved: " + e.message; $("thrMsg").style.color = "var(--crit)"; }
+  setTimeout(() => $("thrMsg").textContent = "", 4000);
+}
+
+/* ------------------------------------------------------------------ loop */
+async function refresh() {
+  if (state.busy) return;
+  state.busy = true;
+  try {
+    const minutes = $("range").value;
+    const [summary, devs, metrics, alerts] = await Promise.all([
+      api("/api/summary"), api("/api/devices"), api(`/api/metrics?minutes=${minutes}`), api("/api/alerts?minutes=60&limit=100"),
+    ]);
+    if (!state.thresholds) state.thresholds = (await api("/api/thresholds")).thresholds;
+    const ids = devs.devices.map(d => d.device_id);
+    if (ids.join() !== state.devices.join()) { state.devices = ids; renderLegend(); }
+    renderSummary(summary); renderDevices(devs.devices); renderAlerts(alerts.alerts);
+    renderThresholds(state.thresholds); updateCharts(metrics);
+    $("banner").style.display = "none";
+    $("liveDot").className = "dot ok"; $("liveText").textContent = "live " + fmtClock(Date.now());
+  } catch (e) {
+    $("banner").style.display = "block";
+    $("liveDot").className = "dot bad"; $("liveText").textContent = "disconnected";
+  } finally { state.busy = false; }
+}
+
+$("range").onchange = () => { refresh(); $("exportLink").href = `/api/metrics/export?format=csv&minutes=${$("range").value}`; };
+$("exportLink").href = `/api/metrics/export?format=csv&minutes=${$("range").value}`;
+$("thrSave").onclick = saveThresholds;
+window.addEventListener("resize", () => Object.values(charts).forEach(c => c.draw()));
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

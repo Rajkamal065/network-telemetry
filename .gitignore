@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+gen/
+telemetry.db*
+.venv/
+.pytest_cache/

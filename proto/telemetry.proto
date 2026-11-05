@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package telemetry;
+
+// One measurement of one network device at one moment.
+message Metric {
+  string device_id           = 1;  // unique name, e.g. "core-router-1"
+  string device_type         = 2;  // "router", "switch", "host" ...
+  string interface           = 3;  // interface the numbers belong to, e.g. "eth0"
+  int64  timestamp_ms        = 4;  // when the agent measured (unix epoch, milliseconds)
+  double rx_bps              = 5;  // bits per second received
+  double tx_bps              = 6;  // bits per second sent
+  double capacity_bps        = 7;  // link capacity in bits per second
+  double latency_ms          = 8;  // round-trip latency; negative means "not available"
+  double packet_loss_pct     = 9;  // 0..100; negative means "not available"
+}
+
+message MetricBatch {
+  repeated Metric metrics = 1;
+}
+
+message Ack {
+  int64  accepted = 1;   // how many metrics the backend accepted
+  int64  rejected = 2;   // how many were invalid
+}
+
+service Telemetry {
+  // Long-lived stream: an agent keeps one connection open and pushes a Metric
+  // every interval (this is the main path).
+  rpc Stream (stream Metric) returns (Ack);
+
+  // One-shot call: send a batch in a single request (useful for tests and tools).
+  rpc Publish (MetricBatch) returns (Ack);
+}
