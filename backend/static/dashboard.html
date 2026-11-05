@@ -4,78 +4,557 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Network Telemetry Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b1220; --panel: #131c2e; --panel2: #18243b; --border: #25324d;
-    --text: #e6ecf5; --muted: #8b9bb8; --ok: #22c55e; --warn: #f59e0b; --crit: #ef4444; --accent: #38bdf8;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-muted: #f1f5f9;
+    --surface-hover: #f8fafc;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --accent-border: #bfdbfe;
+
+    --ok: #16a34a;
+    --ok-soft: #f0fdf4;
+    --ok-border: #bbf7d0;
+
+    --warn: #d97706;
+    --warn-soft: #fffbeb;
+    --warn-border: #fde68a;
+
+    --crit: #dc2626;
+    --crit-soft: #fef2f2;
+    --crit-border: #fecaca;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+    --shadow-dropdown: 0 10px 20px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
   }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
-           padding: 14px 22px; border-bottom: 1px solid var(--border); background: var(--panel); }
-  header h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .2px; }
-  header .sub { color: var(--muted); font-size: 12px; }
-  .controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .controls a { color: var(--accent); text-decoration: none; font-size: 13px; }
-  .controls a:hover { text-decoration: underline; }
-  select, input, button { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
-         border-radius: 6px; padding: 5px 8px; font: inherit; }
-  button { cursor: pointer; } button:hover { border-color: var(--accent); }
-  .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; }
-  .dot.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); } .dot.bad { background: var(--crit); }
-  main { padding: 18px 22px 40px; max-width: 1500px; margin: 0 auto; }
-  #banner { display: none; background: #3b1219; border: 1px solid var(--crit); color: #fecaca;
-            padding: 8px 12px; border-radius: 8px; margin-bottom: 14px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
-  .card .value { font-size: 26px; font-weight: 650; margin-top: 2px; }
-  .card .hint { color: var(--muted); font-size: 12px; }
-  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-  .panel h2 { margin: 0 0 10px; font-size: 14px; font-weight: 650; display: flex; justify-content: space-between; align-items: center; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
-  td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.12);
+  }
+  .brand-meta h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .brand-meta .sub {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rfc-badge {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .live-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    background: var(--ok-soft);
+    border: 1px solid var(--ok-border);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ok);
+  }
+  .live-pill.disconnected {
+    background: var(--crit-soft);
+    border-color: var(--crit-border);
+    color: var(--crit);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot.ok {
+    background: var(--ok);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+    animation: pulse 2s infinite;
+  }
+  .dot.bad {
+    background: var(--crit);
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+  }
+
+  .select-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  select, input {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-outline {
+    background: var(--surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-outline:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--surface-muted);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+    border: 1px solid var(--accent);
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+  }
+
+  main {
+    padding: 24px 28px 48px;
+    max-width: 1560px;
+    margin: 0 auto;
+  }
+
+  #banner {
+    display: none;
+    background: var(--crit-soft);
+    border: 1px solid var(--crit-border);
+    color: var(--crit);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  }
+  .card .label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .card .value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 4px;
+    letter-spacing: -0.02em;
+    font-family: "Plus Jakarta Sans", sans-serif;
+  }
+  .card .hint {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .panel h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel .panel-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--surface-muted);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+  }
+  th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 12px;
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-size: 13px;
+  }
   tr:last-child td { border-bottom: 0; }
-  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-  .badge.online { background: #0f3a22; color: #86efac; } .badge.offline { background: #3b1219; color: #fca5a5; }
-  .badge.critical { background: #3b1219; color: #fca5a5; } .badge.warning { background: #3d2a07; color: #fcd34d; }
-  .badge.resolved { background: #1c2a44; color: var(--muted); }
-  .bar { position: relative; width: 120px; height: 14px; background: #0d1626; border-radius: 7px; overflow: hidden; display: inline-block; vertical-align: middle; }
-  .bar > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
-  .num { font-variant-numeric: tabular-nums; }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .chip { display: flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border);
-          border-radius: 999px; cursor: pointer; user-select: none; font-size: 12px; background: var(--panel); }
-  .chip.off { opacity: .35; } .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; margin-bottom: 16px; }
-  .chartbox { position: relative; }
-  .chartbox canvas { width: 100%; height: 230px; display: block; }
-  .tip { position: absolute; pointer-events: none; display: none; background: #0a1020ee; border: 1px solid var(--border);
-         border-radius: 6px; padding: 6px 8px; font-size: 12px; z-index: 5; white-space: nowrap; }
-  .alerts { max-height: 340px; overflow: auto; }
-  .alert { display: grid; grid-template-columns: 82px 150px 1fr 120px; gap: 10px; padding: 7px 4px;
-           border-bottom: 1px solid var(--border); align-items: center; }
+  tr:hover td { background: #fafcff; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+  }
+  .badge.online { background: var(--ok-soft); color: var(--ok); border: 1px solid var(--ok-border); }
+  .badge.offline { background: var(--crit-soft); color: var(--crit); border: 1px solid var(--crit-border); }
+  .badge.critical { background: var(--crit-soft); color: var(--crit); border: 1px solid var(--crit-border); }
+  .badge.warning { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-border); }
+  .badge.resolved { background: var(--surface-muted); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .device-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .device-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .device-type-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-muted);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .bar-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bar {
+    position: relative;
+    width: 100px;
+    height: 7px;
+    background: var(--surface-muted);
+    border-radius: 999px;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .bar > span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface);
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s ease;
+  }
+  .chip:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-muted);
+  }
+  .chip.off {
+    opacity: 0.38;
+    background: var(--surface-muted);
+  }
+  .chip i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .chartbox {
+    position: relative;
+    margin-top: 8px;
+  }
+  .chartbox canvas {
+    width: 100%;
+    height: 220px;
+    display: block;
+  }
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: var(--shadow-dropdown);
+    color: var(--text);
+  }
+
+  .alerts {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .alert {
+    display: grid;
+    grid-template-columns: 88px 160px 1fr 140px;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    font-size: 12.5px;
+    transition: background 0.1s ease;
+  }
+  .alert:hover { background: #fafcff; }
   .alert:last-child { border-bottom: 0; }
-  .alert .msg { color: var(--text); } .alert .when { color: var(--muted); font-size: 12px; text-align: right; }
-  .empty { color: var(--muted); padding: 10px 2px; }
-  .thr { display: grid; grid-template-columns: 170px repeat(2, 120px) 1fr; gap: 8px 12px; align-items: center; }
-  .thr input { width: 100px; } .thr .h { color: var(--muted); font-size: 12px; }
-  #thrMsg { color: var(--muted); font-size: 12px; }
-  @media (max-width: 700px) { .alert { grid-template-columns: 70px 1fr; } .alert .when { text-align: left; } }
+  .alert .msg { color: var(--text); font-weight: 500; }
+  .alert .when {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .empty {
+    color: var(--text-muted);
+    padding: 14px 6px;
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  .thr {
+    display: grid;
+    grid-template-columns: 190px repeat(2, 130px) 1fr;
+    gap: 10px 16px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .thr input { width: 110px; }
+  .thr .h {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  #thrMsg {
+    margin-left: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 12px 16px; }
+    main { padding: 16px 16px 40px; }
+    .charts { grid-template-columns: 1fr; }
+    .alert { grid-template-columns: 75px 1fr; }
+    .alert .when { text-align: left; }
+    .thr { grid-template-columns: 1fr 1fr; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>Network Telemetry Dashboard</h1>
-    <div class="sub">Live bandwidth and latency of routers and switches</div>
+  <div class="brand">
+    <div class="brand-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+      </svg>
+    </div>
+    <div class="brand-meta">
+      <h1>Network Telemetry Framework</h1>
+      <div class="sub">
+        <span>Live Router & Switch Performance</span>
+        <span class="rfc-badge">RFC 9232</span>
+      </div>
+    </div>
   </div>
+
   <div class="controls">
-    <span class="live"><span id="liveDot" class="dot"></span><span id="liveText">connecting...</span></span>
-    <label>Time range
+    <span class="live-pill" id="livePill">
+      <span id="liveDot" class="dot ok"></span>
+      <span id="liveText">Connecting...</span>
+    </span>
+
+    <div class="select-group">
+      <span>Range:</span>
       <select id="range">
         <option value="5">Last 5 min</option>
         <option value="15" selected>Last 15 min</option>
@@ -83,56 +562,154 @@
         <option value="360">Last 6 hours</option>
         <option value="1440">Last 24 hours</option>
       </select>
-    </label>
-    <a href="/docs" target="_blank">API docs</a>
-    <a id="exportLink" href="/api/metrics/export?format=csv&minutes=60">Export CSV</a>
-    <a href="/metrics" target="_blank">Prometheus</a>
+    </div>
+
+    <a id="exportLink" href="/api/metrics/export?format=csv&minutes=15" class="btn btn-outline">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Export CSV
+    </a>
+    <a href="/docs" target="_blank" class="btn btn-outline">API Docs</a>
+    <a href="/metrics" target="_blank" class="btn btn-outline">Prometheus</a>
   </div>
 </header>
 
 <main>
-  <div id="banner">Cannot reach the backend. Retrying...</div>
+  <div id="banner">Cannot reach the backend receiver. Retrying connection...</div>
 
+  <!-- Summary Cards -->
   <section class="cards">
-    <div class="card"><div class="label">Devices online</div><div class="value" id="cDevices">-</div><div class="hint" id="cDevicesHint">&nbsp;</div></div>
-    <div class="card"><div class="label">Active alerts</div><div class="value" id="cAlerts">-</div><div class="hint" id="cAlertsHint">&nbsp;</div></div>
-    <div class="card"><div class="label">Total traffic</div><div class="value" id="cTraffic">-</div><div class="hint" id="cTrafficHint">&nbsp;</div></div>
-    <div class="card"><div class="label">Average latency</div><div class="value" id="cLatency">-</div><div class="hint">across online devices</div></div>
-    <div class="card"><div class="label">Busiest link</div><div class="value" id="cUtil">-</div><div class="hint">highest utilization now</div></div>
+    <div class="card">
+      <div class="label">Devices Online</div>
+      <div class="value" id="cDevices">-</div>
+      <div class="hint" id="cDevicesHint">&nbsp;</div>
+    </div>
+    <div class="card">
+      <div class="label">Active Alerts</div>
+      <div class="value" id="cAlerts">-</div>
+      <div class="hint" id="cAlertsHint">&nbsp;</div>
+    </div>
+    <div class="card">
+      <div class="label">Total Network Traffic</div>
+      <div class="value" id="cTraffic">-</div>
+      <div class="hint" id="cTrafficHint">&nbsp;</div>
+    </div>
+    <div class="card">
+      <div class="label">Average Latency</div>
+      <div class="value" id="cLatency">-</div>
+      <div class="hint">Across online devices</div>
+    </div>
+    <div class="card">
+      <div class="label">Busiest Link</div>
+      <div class="value" id="cUtil">-</div>
+      <div class="hint">Peak utilization now</div>
+    </div>
   </section>
 
+  <!-- Device Table -->
   <section class="panel">
-    <h2>Devices</h2>
-    <table>
-      <thead><tr><th>Device</th><th>Status</th><th>Utilization</th><th>Download</th><th>Upload</th><th>Latency</th><th>Loss</th><th>Alerts</th></tr></thead>
-      <tbody id="deviceRows"><tr><td colspan="8" class="empty">Waiting for data...</td></tr></tbody>
-    </table>
+    <div class="panel-header">
+      <h2>Devices & Interfaces</h2>
+      <span class="panel-tag">Real-Time Ingestion</span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Status</th>
+            <th>Utilization</th>
+            <th>Download (RX)</th>
+            <th>Upload (TX)</th>
+            <th>Latency (RTT)</th>
+            <th>Packet Loss</th>
+            <th>Alerts</th>
+          </tr>
+        </thead>
+        <tbody id="deviceRows">
+          <tr><td colspan="8" class="empty">Waiting for streaming telemetry data...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
+  <!-- Chart Filter Legend -->
   <div class="legend" id="legend"></div>
+
+  <!-- Charts Grid -->
   <section class="charts">
-    <div class="panel"><h2>Bandwidth utilization (% of link capacity)</h2><div class="chartbox" id="box_util"><canvas></canvas><div class="tip"></div></div></div>
-    <div class="panel"><h2>Latency (ms)</h2><div class="chartbox" id="box_lat"><canvas></canvas><div class="tip"></div></div></div>
-    <div class="panel"><h2>Throughput (Mbit/s, download + upload)</h2><div class="chartbox" id="box_thr"><canvas></canvas><div class="tip"></div></div></div>
-    <div class="panel"><h2>Packet loss (%)</h2><div class="chartbox" id="box_loss"><canvas></canvas><div class="tip"></div></div></div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Bandwidth Utilization</h2>
+        <span class="panel-tag">% of link capacity</span>
+      </div>
+      <div class="chartbox" id="box_util"><canvas></canvas><div class="tip"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Round-Trip Latency</h2>
+        <span class="panel-tag">ms</span>
+      </div>
+      <div class="chartbox" id="box_lat"><canvas></canvas><div class="tip"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Throughput Rate</h2>
+        <span class="panel-tag">Mbit/s (RX + TX)</span>
+      </div>
+      <div class="chartbox" id="box_thr"><canvas></canvas><div class="tip"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Packet Loss</h2>
+        <span class="panel-tag">%</span>
+      </div>
+      <div class="chartbox" id="box_loss"><canvas></canvas><div class="tip"></div></div>
+    </div>
   </section>
 
+  <!-- Alerts Feed -->
   <section class="panel">
-    <h2>Alerts <span class="sub" style="color:var(--muted);font-weight:400">active now and resolved in the last hour</span></h2>
-    <div class="alerts" id="alerts"><div class="empty">No alerts.</div></div>
+    <div class="panel-header">
+      <h2>Active & Recent Incidents</h2>
+      <span class="panel-tag">State Machine with Hysteresis</span>
+    </div>
+    <div class="alerts" id="alerts">
+      <div class="empty">No alerts in the last hour. All devices healthy.</div>
+    </div>
   </section>
 
+  <!-- Thresholds Configuration -->
   <section class="panel">
-    <h2>Alert thresholds <span id="thrMsg"></span></h2>
+    <div class="panel-header">
+      <h2>Alert Threshold Policies <span id="thrMsg"></span></h2>
+      <span class="panel-tag">Runtime Settings</span>
+    </div>
     <div class="thr" id="thr"></div>
-    <div style="margin-top:10px"><button id="thrSave">Save thresholds</button></div>
+    <div style="margin-top:14px">
+      <button id="thrSave" class="btn btn-primary">Save Threshold Policies</button>
+    </div>
   </section>
 </main>
 
 <script>
 "use strict";
-const COLORS = ["#38bdf8", "#a78bfa", "#34d399", "#fbbf24", "#f472b6", "#fb923c", "#60a5fa", "#4ade80",
-                "#e879f9", "#facc15", "#2dd4bf", "#f87171"];
+// Professional Enterprise Palette (High contrast on clean light backgrounds)
+const COLORS = [
+  "#2563eb", // Royal Blue
+  "#7c3aed", // Violet / Purple
+  "#059669", // Emerald Green
+  "#d97706", // Warm Amber
+  "#e11d48", // Rose Red
+  "#0891b2", // Cyan
+  "#ea580c", // Deep Orange
+  "#475569", // Slate
+  "#4f46e5", // Indigo
+  "#65a30d"  // Lime Green
+];
 const state = { devices: [], hidden: new Set(), thresholds: null, series: {}, meta: {}, busy: false };
 
 const $ = id => document.getElementById(id);
@@ -154,7 +731,7 @@ function fmtDur(s) {
   if (s < 3600) return Math.floor(s / 60) + "m " + (s % 60) + "s";
   return Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m";
 }
-const sevColor = u => u >= 90 ? "var(--crit)" : u >= 70 ? "var(--warn)" : "var(--ok)";
+const sevColor = u => u >= 90 ? "#dc2626" : u >= 70 ? "#d97706" : "#2563eb";
 
 async function api(path, options) {
   const r = await fetch(path, options);
@@ -169,8 +746,12 @@ async function api(path, options) {
 /* ---------------------------------------------------------------- charts */
 class LineChart {
   constructor(boxId, opts) {
-    this.box = $(boxId); this.canvas = this.box.querySelector("canvas"); this.tip = this.box.querySelector(".tip");
-    this.opts = opts; this.data = null; this.hover = null;
+    this.box = $(boxId);
+    this.canvas = this.box.querySelector("canvas");
+    this.tip = this.box.querySelector(".tip");
+    this.opts = opts;
+    this.data = null;
+    this.hover = null;
     this.canvas.addEventListener("mousemove", e => { this.hover = e; this.draw(); });
     this.canvas.addEventListener("mouseleave", () => { this.hover = null; this.draw(); });
   }
@@ -188,10 +769,10 @@ class LineChart {
     const g = c.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
-    const pad = { l: 48, r: 10, t: 8, b: 22 };
+    const pad = { l: 46, r: 12, t: 10, b: 24 };
     const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
     const d = this.data;
-    g.font = "11px system-ui, sans-serif";
+    g.font = "11px 'Plus Jakarta Sans', system-ui, sans-serif";
     if (!d) return;
     const { tMin, tMax, series, gapMs } = d;
     const lines = [];
@@ -203,36 +784,48 @@ class LineChart {
       lines.push({ id, pts: series[id] });
     }
     const thr = (this.opts.thresholds && state.thresholds) ? this.opts.thresholds(state.thresholds) : [];
-    let yMax = Math.max(dataMax * 1.1, ...thr.map(t => t.value * 1.08), this.opts.minMax || 1);
+    let yMax = Math.max(dataMax * 1.12, ...thr.map(t => t.value * 1.08), this.opts.minMax || 1);
     yMax = this.niceMax(yMax);
     const X = t => pad.l + (t - tMin) / (tMax - tMin) * pw;
     const Y = v => pad.t + ph - v / yMax * ph;
 
-    // grid + y labels
-    g.strokeStyle = "#25324d"; g.fillStyle = "#8b9bb8"; g.lineWidth = 1;
-    g.textAlign = "right"; g.textBaseline = "middle";
+    // clean light gridlines
+    g.strokeStyle = "#f1f5f9";
+    g.fillStyle = "#64748b";
+    g.lineWidth = 1;
+    g.textAlign = "right";
+    g.textBaseline = "middle";
     for (let i = 0; i <= 4; i++) {
       const v = yMax * i / 4, y = Math.round(Y(v)) + .5;
       g.beginPath(); g.moveTo(pad.l, y); g.lineTo(w - pad.r, y); g.stroke();
       g.fillText(v >= 100 ? v.toFixed(0) : v.toFixed(1).replace(/\.0$/, ""), pad.l - 6, y);
     }
-    // x labels
-    g.textAlign = "center"; g.textBaseline = "top";
+    // x axis labels
+    g.textAlign = "center";
+    g.textBaseline = "top";
     for (let i = 0; i <= 4; i++) {
       const t = tMin + (tMax - tMin) * i / 4;
-      g.fillText(fmtClock(t), Math.min(Math.max(X(t), pad.l + 24), w - pad.r - 24), h - pad.b + 5);
+      g.fillText(fmtClock(t), Math.min(Math.max(X(t), pad.l + 24), w - pad.r - 24), h - pad.b + 6);
     }
-    // thresholds
-    g.setLineDash([5, 4]); g.lineWidth = 1;
+    // threshold lines
+    g.setLineDash([4, 4]);
+    g.lineWidth = 1;
     for (const t of thr) {
-      g.strokeStyle = t.color; const y = Y(t.value);
+      g.strokeStyle = t.color;
+      const y = Y(t.value);
       g.beginPath(); g.moveTo(pad.l, y); g.lineTo(w - pad.r, y); g.stroke();
     }
     g.setLineDash([]);
-    // lines
-    g.save(); g.beginPath(); g.rect(pad.l, pad.t, pw, ph); g.clip();
+
+    // series lines
+    g.save();
+    g.beginPath();
+    g.rect(pad.l, pad.t, pw, ph);
+    g.clip();
     for (const ln of lines) {
-      g.strokeStyle = colorOf(ln.id); g.lineWidth = 1.8; g.lineJoin = "round";
+      g.strokeStyle = colorOf(ln.id);
+      g.lineWidth = 2.0;
+      g.lineJoin = "round";
       let open = false, prev = null;
       g.beginPath();
       for (const p of ln.pts) {
@@ -249,38 +842,50 @@ class LineChart {
     if (this.hover) {
       const rect = c.getBoundingClientRect();
       const mx = this.hover.clientX - rect.left;
-      if (mx >= pad.l && mx <= w - pad.r) {
-        const t = tMin + (mx - pad.l) / pw * (tMax - tMin);
-        g.strokeStyle = "#8b9bb8"; g.lineWidth = 1; g.setLineDash([2, 3]);
-        g.beginPath(); g.moveTo(mx, pad.t); g.lineTo(mx, pad.t + ph); g.stroke(); g.setLineDash([]);
-        let html = `<div style="color:#8b9bb8;margin-bottom:3px">${fmtClock(t)}</div>`, any = false;
+      const my = this.hover.clientY - rect.top;
+      if (mx >= pad.l && mx <= w - pad.r && my >= pad.t && my <= h - pad.b) {
+        const hoverT = tMin + (mx - pad.l) / pw * (tMax - tMin);
+        let closest = null, minDist = Infinity;
         for (const ln of lines) {
-          let best = null;
-          for (const p of ln.pts) { if (p.v == null) continue; if (best === null || Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; }
-          if (best && Math.abs(best.t - t) <= gapMs) {
-            any = true;
-            html += `<div><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colorOf(ln.id)};margin-right:6px"></i>${esc(ln.id)}: <b>${best.v.toFixed(this.opts.decimals ?? 1)}${this.opts.unit || ""}</b></div>`;
+          for (const p of ln.pts) {
+            if (p.v == null) continue;
+            const px = X(p.t), py = Y(p.v);
+            const dist = Math.hypot(mx - px, my - py);
+            if (dist < minDist && dist < 28) {
+              minDist = dist;
+              closest = { id: ln.id, t: p.t, v: p.v, x: px, y: py };
+            }
           }
         }
-        if (any) {
-          this.tip.innerHTML = html; this.tip.style.display = "block";
-          const tw = this.tip.offsetWidth;
-          this.tip.style.left = (mx + 14 + tw > w ? mx - tw - 14 : mx + 14) + "px";
-          this.tip.style.top = "6px";
-        } else this.tip.style.display = "none";
+        if (closest) {
+          g.fillStyle = colorOf(closest.id);
+          g.beginPath(); g.arc(closest.x, closest.y, 4, 0, Math.PI * 2); g.fill();
+          g.strokeStyle = "#ffffff"; g.lineWidth = 2; g.stroke();
+
+          this.tip.style.display = "block";
+          this.tip.style.left = Math.min(closest.x + 10, w - 170) + "px";
+          this.tip.style.top = Math.max(closest.y - 32, 10) + "px";
+          this.tip.innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${colorOf(closest.id)};margin-right:5px"></span><b>${esc(closest.id)}</b>: ${closest.v.toFixed(this.opts.decimals || 1)}${this.opts.unit} <span style="color:#64748b;font-size:10.5px">(${fmtClock(closest.t)})</span>`;
+        } else {
+          this.tip.style.display = "none";
+        }
+      } else {
+        this.tip.style.display = "none";
       }
-    } else this.tip.style.display = "none";
+    } else {
+      this.tip.style.display = "none";
+    }
   }
 }
 
 const charts = {
   util: new LineChart("box_util", { unit: "%", minMax: 100, decimals: 1,
-    thresholds: t => [{ value: t.utilization_pct.warning, color: "#f59e0b" }, { value: t.utilization_pct.critical, color: "#ef4444" }] }),
+    thresholds: t => [{ value: t.utilization_pct.warning, color: "#d97706" }, { value: t.utilization_pct.critical, color: "#dc2626" }] }),
   lat: new LineChart("box_lat", { unit: " ms", minMax: 20, decimals: 1,
-    thresholds: t => [{ value: t.latency_ms.warning, color: "#f59e0b" }, { value: t.latency_ms.critical, color: "#ef4444" }] }),
+    thresholds: t => [{ value: t.latency_ms.warning, color: "#d97706" }, { value: t.latency_ms.critical, color: "#dc2626" }] }),
   thr: new LineChart("box_thr", { unit: " Mbit/s", minMax: 10, decimals: 1 }),
   loss: new LineChart("box_loss", { unit: " %", minMax: 5, decimals: 2,
-    thresholds: t => [{ value: t.packet_loss_pct.warning, color: "#f59e0b" }, { value: t.packet_loss_pct.critical, color: "#ef4444" }] }),
+    thresholds: t => [{ value: t.packet_loss_pct.warning, color: "#d97706" }, { value: t.packet_loss_pct.critical, color: "#dc2626" }] }),
 };
 
 function updateCharts(resp) {
@@ -309,40 +914,59 @@ function renderLegend() {
 
 function renderSummary(s) {
   $("cDevices").textContent = `${s.devices_online} / ${s.devices_total}`;
-  $("cDevicesHint").textContent = s.devices_offline ? `${s.devices_offline} offline` : "all reachable";
+  $("cDevicesHint").textContent = s.devices_offline ? `${s.devices_offline} device(s) offline` : "All devices reachable";
   $("cAlerts").textContent = s.alerts_active;
   $("cAlerts").style.color = s.alerts_critical ? "var(--crit)" : s.alerts_warning ? "var(--warn)" : "var(--ok)";
   $("cAlertsHint").textContent = `${s.alerts_critical} critical, ${s.alerts_warning} warning`;
   $("cTraffic").textContent = fmtBps(s.total_rx_bps + s.total_tx_bps);
-  $("cTrafficHint").textContent = `down ${fmtBps(s.total_rx_bps)}, up ${fmtBps(s.total_tx_bps)}`;
+  $("cTrafficHint").textContent = `↓ ${fmtBps(s.total_rx_bps)} • ↑ ${fmtBps(s.total_tx_bps)}`;
   $("cLatency").textContent = fmtNum(s.avg_latency_ms, 1, " ms");
-  $("cUtil").textContent = fmtNum(s.max_utilization_pct, 0, "%");
+  $("cUtil").textContent = fmtNum(s.max_utilization_pct, 1, "%");
 }
 
 function renderDevices(list) {
-  if (!list.length) { $("deviceRows").innerHTML = '<tr><td colspan="8" class="empty">No devices yet. Start the agents.</td></tr>'; return; }
+  if (!list.length) {
+    $("deviceRows").innerHTML = '<tr><td colspan="8" class="empty">No devices active. Launch the agent fleet to begin.</td></tr>';
+    return;
+  }
   $("deviceRows").innerHTML = list.map(d => {
     const l = d.latest || {};
     const u = l.util_pct;
-    const bar = u == null ? "-" : `<span class="bar"><span style="width:${Math.min(100, u)}%;background:${sevColor(u)}"></span></span> <span class="num">${u.toFixed(0)}%</span>`;
-    const alerts = d.active_alerts ? `<span class="badge ${d.worst_severity}">${d.active_alerts}</span>` : '<span style="color:var(--muted)">0</span>';
+    const uText = u == null ? "-" : (u > 0 && u < 0.1) ? "<0.1%" : (u < 10) ? `${u.toFixed(1)}%` : `${u.toFixed(0)}%`;
+    const barWidth = u == null ? 0 : Math.min(100, Math.max(u, u > 0 ? 2 : 0));
+    const bar = u == null ? "-" : `<div class="bar-container"><span class="bar"><span style="width:${barWidth}%;background:${sevColor(u)}"></span></span> <span class="num">${uText}</span></div>`;
+    const alerts = d.active_alerts ? `<span class="badge ${d.worst_severity}">${d.active_alerts}</span>` : '<span style="color:var(--text-muted)">0</span>';
     return `<tr>
-      <td><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${colorOf(d.device_id)};margin-right:8px"></i><b>${esc(d.device_id)}</b> <span style="color:var(--muted)">${esc(d.device_type)}</span></td>
+      <td>
+        <span class="device-pill">
+          <span class="device-dot" style="background:${colorOf(d.device_id)}"></span>
+          <span>${esc(d.device_id)}</span>
+          <span class="device-type-tag">${esc(d.device_type)}</span>
+        </span>
+      </td>
       <td><span class="badge ${d.status}">${d.status}</span></td>
-      <td>${bar}</td><td class="num">${fmtBps(l.rx_bps)}</td><td class="num">${fmtBps(l.tx_bps)}</td>
-      <td class="num">${fmtNum(l.latency_ms, 1, " ms")}</td><td class="num">${fmtNum(l.loss_pct, 2, "%")}</td><td>${alerts}</td></tr>`;
+      <td>${bar}</td>
+      <td class="num">${fmtBps(l.rx_bps)}</td>
+      <td class="num">${fmtBps(l.tx_bps)}</td>
+      <td class="num">${fmtNum(l.latency_ms, 1, " ms")}</td>
+      <td class="num">${fmtNum(l.loss_pct, 2, "%")}</td>
+      <td>${alerts}</td>
+    </tr>`;
   }).join("");
 }
 
 function renderAlerts(list) {
   const rank = a => a.state === "active" ? 0 : 1;
   list.sort((a, b) => rank(a) - rank(b) || b.opened_ms - a.opened_ms);
-  if (!list.length) { $("alerts").innerHTML = '<div class="empty">No alerts in the last hour. The network looks healthy.</div>'; return; }
-  $("alerts").innerHTML = list.slice(0, 60).map(a => `
+  if (!list.length) {
+    $("alerts").innerHTML = '<div class="empty">No active alerts. All performance parameters within safe limits.</div>';
+    return;
+  }
+  $("alerts").innerHTML = list.slice(0, 50).map(a => `
     <div class="alert">
       <span class="badge ${a.state === "active" ? a.severity : "resolved"}">${a.state === "active" ? a.severity : "resolved"}</span>
       <b>${esc(a.device_id)}</b>
-      <span class="msg">${esc(a.message)}${a.peak_value != null && a.metric !== "device_offline" ? ` <span style="color:var(--muted)">(peak ${a.peak_value.toFixed(1)})</span>` : ""}</span>
+      <span class="msg">${esc(a.message)}${a.peak_value != null && a.metric !== "device_offline" ? ` <span style="color:var(--text-muted)">(peak: ${a.peak_value.toFixed(1)})</span>` : ""}</span>
       <span class="when">${fmtClock(a.opened_ms)} &middot; ${fmtDur(a.duration_s)}</span>
     </div>`).join("");
 }
@@ -350,11 +974,14 @@ function renderAlerts(list) {
 const THR_LABELS = { utilization_pct: ["Utilization", "%"], latency_ms: ["Latency", "ms"], packet_loss_pct: ["Packet loss", "%"] };
 function renderThresholds(t) {
   const box = $("thr");
-  if (box.dataset.ready) return;           // do not overwrite while the user is typing
+  if (box.dataset.ready) return;
   box.dataset.ready = "1";
-  let html = '<span class="h">Metric</span><span class="h">Warning at</span><span class="h">Critical at</span><span></span>';
+  let html = '<span class="h">Performance Metric</span><span class="h">Warning Level</span><span class="h">Critical Level</span><span></span>';
   for (const [k, [label, unit]] of Object.entries(THR_LABELS)) {
-    html += `<span>${label} (${unit})</span><input type="number" step="any" id="thr_${k}_warning" value="${t[k].warning}"><input type="number" step="any" id="thr_${k}_critical" value="${t[k].critical}"><span></span>`;
+    html += `<span><b>${label}</b> (${unit})</span>
+             <input type="number" step="any" id="thr_${k}_warning" value="${t[k].warning}">
+             <input type="number" step="any" id="thr_${k}_critical" value="${t[k].critical}">
+             <span></span>`;
   }
   box.innerHTML = html;
 }
@@ -365,8 +992,13 @@ async function saveThresholds() {
     body[k] = { warning: parseFloat($(`thr_${k}_warning`).value), critical: parseFloat($(`thr_${k}_critical`).value) };
   try {
     const r = await api("/api/thresholds", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    state.thresholds = r.thresholds; $("thrMsg").textContent = "saved"; $("thrMsg").style.color = "var(--ok)";
-  } catch (e) { $("thrMsg").textContent = "not saved: " + e.message; $("thrMsg").style.color = "var(--crit)"; }
+    state.thresholds = r.thresholds;
+    $("thrMsg").textContent = "✓ Settings applied";
+    $("thrMsg").style.color = "var(--ok)";
+  } catch (e) {
+    $("thrMsg").textContent = "✗ Update failed: " + e.message;
+    $("thrMsg").style.color = "var(--crit)";
+  }
   setTimeout(() => $("thrMsg").textContent = "", 4000);
 }
 
@@ -385,10 +1017,14 @@ async function refresh() {
     renderSummary(summary); renderDevices(devs.devices); renderAlerts(alerts.alerts);
     renderThresholds(state.thresholds); updateCharts(metrics);
     $("banner").style.display = "none";
-    $("liveDot").className = "dot ok"; $("liveText").textContent = "live " + fmtClock(Date.now());
+    $("livePill").className = "live-pill";
+    $("liveDot").className = "dot ok";
+    $("liveText").textContent = "Streaming Live " + fmtClock(Date.now());
   } catch (e) {
     $("banner").style.display = "block";
-    $("liveDot").className = "dot bad"; $("liveText").textContent = "disconnected";
+    $("livePill").className = "live-pill disconnected";
+    $("liveDot").className = "dot bad";
+    $("liveText").textContent = "Disconnected";
   } finally { state.busy = false; }
 }
 
