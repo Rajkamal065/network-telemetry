@@ -80,13 +80,7 @@ why my utilization shows 0
 
 ---
 
-## Prompt 8 — 2026-11-05T20:27:23Z
 
-`	ext
-https://github.com/HARSHA219219/Network-Telemetry-Framework check this repo once is this better than us or for the student and easy theoritical level ours better for technical review and also is the dpth better in our or what explain me that project clearly
-`
-
----
 
 ## Prompt 9 — 2026-11-05T20:41:01Z
 
