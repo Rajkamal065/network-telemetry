@@ -50,7 +50,8 @@ network-telemetry/
 │   ├── presentation_slides.html           # Standalone interactive HTML presentation
 │   └── README.md                  # Slide outline, topics, and presenter notes
 └── ai/                            # Transparent AI prompts and development dialogue
-    └── README.md                  # Comprehensive student learning inquiry and code generation dialogue
+    ├── README.md                  # Comprehensive student learning inquiry and code generation dialogue
+    └── raw_prompts.md             # Sequential chronological archive of all project prompts
 ```
 
 ---
@@ -157,7 +158,8 @@ The framework implements the continuous push telemetry model defined in **RFC 92
 
 ## Links to Submission Artifacts
 
-- **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf) *(Updated with Appendix B Prompts Table, 9 Pages)*
+- **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf) (Original IEEE 2-Column Format, 9 Pages)
 - **Presentation Slides (PPTX)**: [ppt/Network_Telemetry_Presentation.pptx](./ppt/Network_Telemetry_Presentation.pptx)
 - **Presentation Slides (PDF)**: [ppt/Network_Telemetry_Presentation.pdf](./ppt/Network_Telemetry_Presentation.pdf)
 - **AI Prompts & Development Dialogue**: [ai/README.md](./ai/README.md)
+- **Raw Prompts Archive**: [ai/raw_prompts.md](./ai/raw_prompts.md)
