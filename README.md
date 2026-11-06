@@ -50,7 +50,11 @@ network-telemetry/
 │   ├── presentation_slides.html           # Standalone interactive HTML presentation
 │   └── README.md                  # Slide outline, topics, and presenter notes
 └── ai/                            # Transparent AI prompts and conversations log
-    ├── raw_conversations.md       # Verbatim, chronological transcript (26 turns)
+    ├── AI_Usage_Documentation.pdf # Formal 2-page AI usage documentation (template format)
+    ├── AI_Learning_Prompts.pdf    # Pedagogical student inquiry & ground-truth prompts log
+    ├── AI_Usage_Documentation.md  # Markdown version of AI usage report
+    ├── AI_Learning_Prompts.md     # Markdown version of learning prompts
+    ├── raw_conversations.md       # Verbatim, chronological transcript (all turns)
     ├── prompts_and_responses.json # Structured JSON export of prompts and actions
     ├── raw_transcript_full.jsonl  # Verbatim system-generated audit log
     └── README.md                  # Academic integrity statement and log guide
@@ -160,7 +164,9 @@ The framework implements the continuous push telemetry model defined in **RFC 92
 
 ## 📜 Links to Submission Artifacts
 
-- 📑 **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf)
+- 📑 **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf) *(Updated with Appendix B Prompts Table, 9 Pages)*
 - 🖥️ **Presentation Slides (PPTX)**: [ppt/Network_Telemetry_Presentation.pptx](./ppt/Network_Telemetry_Presentation.pptx)
 - 📄 **Presentation Slides (PDF)**: [ppt/Network_Telemetry_Presentation.pdf](./ppt/Network_Telemetry_Presentation.pdf)
+- 📋 **AI Usage Documentation (PDF)**: [ai/AI_Usage_Documentation.pdf](./ai/AI_Usage_Documentation.pdf)
+- 💡 **AI Learning Prompts (PDF)**: [ai/AI_Learning_Prompts.pdf](./ai/AI_Learning_Prompts.pdf)
 - 🤖 **Raw AI Conversations Log**: [ai/raw_conversations.md](./ai/raw_conversations.md)
