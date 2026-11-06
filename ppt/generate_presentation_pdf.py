@@ -173,7 +173,7 @@ def slide2(doc):
     txt(p, 28, 338, "Target Performance Metrics:", fs=13, fn="hebo", color=NAVY)
     txt(p, 40, 358, "1. Bandwidth Utilization: Real-time link capacity consumption (0% to 100%)", fs=10, fn="helv", color=DARK)
     txt(p, 40, 376, "2. Throughput Rates: Ingress and egress bitrates in Mbit/s", fs=10, fn="helv", color=DARK)
-    txt(p, 40, 394, "3. Round-Trip Latency: End-to-end TCP connection response time in milliseconds", fs=10, fn="helv", color=DARK)
+    txt(p, 40, 394, "3. TCP Connection Latency: Time required to establish a TCP connection to a configured remote server", fs=10, fn="helv", color=DARK)
     txt(p, 40, 412, "4. Interface Health: Monitoring packet errors, discards, and dropped frames", fs=10, fn="helv", color=DARK)
 
     line(p, 480, 78, 480, 510, color=BORDER)
@@ -204,7 +204,7 @@ def slide2(doc):
         "2. Asynchronous backend ingestion pipeline with decoupled storage queue",
         "3. Threshold-based alerting engine with anti-flapping hysteresis logic",
         "4. Real-time web dashboard, REST query APIs, and CSV/JSON export capability",
-        "5. Automated test suite with 30 passing unit and integration test cases",
+        "5. Automated unit and integration tests covering ingestion, alert logic, APIs and agent behavior",
     ]
     dy = 334
     for d in delivs:
@@ -271,15 +271,15 @@ def slide4(doc):
 
     dash_bullets = [
         ("KPI Health Overview:",
-         "Instant summary cards displaying reachable device count (6/6), active alert counts, total throughput (1.65 Gbit/s), and average latency."),
+         "Instant summary cards displaying reachable device count, active alerts, aggregated live bitrates, and round-trip latency."),
         ("Interface Utilization Table:",
-         "Tabular monitoring of routers, switches, and hosts with live bitrates, round-trip latency, packet loss, and animated utilization gauges."),
+         "Tabular monitoring of routers, switches, and hosts with live bitrates, latency, packet loss, and animated utilization gauges."),
         ("Dynamic Sub-0.1% Precision:",
          "Correctly preserves sub-0.1% utilization on idle links rather than rounding down to zero, maintaining telemetry continuity."),
         ("Canvas Trend Visualizations:",
          "Hardware-accelerated HTML5 canvas line graphs plotting Bandwidth Usage, Latency, and Throughput with smooth 2-second updates."),
         ("Historical Data Export:",
-         "One-click CSV export engine generating comprehensive, audit-ready telemetry logs for offline analysis in under 0.6 seconds."),
+         "One-click CSV export engine generating comprehensive, audit-ready telemetry logs for offline analysis."),
     ]
     dy = 118
     for title, desc in dash_bullets:
@@ -290,7 +290,7 @@ def slide4(doc):
     txt(p, 38, 415, "Experimental Testbed Topology:", fs=11.5, fn="hebo", color=GREEN)
     txt(p, 38, 434, "- 1 Physical Host Node: Live OS network counters sampled via psutil with active TCP connection probing", fs=9.5, fn="helv", color=DARK)
     txt(p, 38, 452, "- 5 Simulated Network Nodes: 2 core routers, 2 edge switches, 1 branch router with scripted congestion cycles", fs=9.5, fn="helv", color=DARK)
-    txt(p, 38, 470, "- Update Cadence: 1-second continuous gRPC push stream; dashboard refreshes every 2 seconds via REST polling", fs=9.5, fn="helv", color=DARK)
+    txt(p, 38, 470, "- Sampling Cadence: Agents sample every 2 seconds by default (1 second in scalability experiments); dashboard refreshes every 2 seconds", fs=9.5, fn="helv", color=DARK)
 
 # =============================================================================
 # SLIDE 5: Testing & Results
@@ -301,10 +301,10 @@ def slide5(doc):
     slide_footer(p, 5)
 
     cards = [
-        ("400 Devices", "0 Dropped Packets", "Tested with 400 concurrent simulated devices at 1 sample/s with zero data loss.", BLUE),
+        ("400 Devices", "0 Samples Dropped", "400 simulated devices benchmarked with zero telemetry samples dropped by the pipeline.", BLUE),
         ("2.8 Seconds", "Mean Alert Time", "Injected congestion incidents were detected and alerted in an average of 2.8 seconds.", RED),
         ("71% Reduction", "Flapping Suppression", "Hysteresis state machine eliminated transient noise, cutting false alerts from 101/hr to 29.6/hr.", GREEN),
-        ("30 / 30 Passed", "Automated Tests", "100% test pass rate across Protobuf schemas, database queues, alert logic, and REST APIs.", PURPLE),
+        ("Pytest Suite", "Automated Tests", "Unit and integration tests covering ingestion, alert logic, APIs and agent behavior.", PURPLE),
     ]
     card_w = (W - 56 - 3 * 14) / 4
     for i, (bignum, title, desc, col) in enumerate(cards):
@@ -331,7 +331,7 @@ def slide5(doc):
 
     rr(p, 28, 416, W - 56, 62, NAVY, NAVY)
     txt(p, 40, 436, "Summary of Experimental Findings:", fs=11.5, fn="hebo", color=WHITE)
-    txt(p, 40, 455, "1. High Throughput & Zero Loss: The decoupled queue architecture sustains 400 samples/s with zero dropped packets and p95 latency under 26 ms.", fs=9.5, fn="helv", color=C("93c5fd"))
+    txt(p, 40, 455, "1. High Throughput & Zero Loss: The decoupled queue architecture sustains 400 samples/s with zero dropped telemetry samples and p95 latency under 26 ms.", fs=9.5, fn="helv", color=C("93c5fd"))
     txt(p, 40, 470, "2. Alert Reliability: Hysteresis evaluation accurately isolates sustained congestion from transient noise, resolving automatically post-recovery.", fs=9.5, fn="helv", color=C("93c5fd"))
 
 # =============================================================================
@@ -351,7 +351,7 @@ def slide6(doc):
         ("High-Speed Streaming:",
          "Replaces legacy SNMP pull polling with lightweight gRPC HTTP/2 push streaming using compact Protocol Buffers (~72 bytes/sample)."),
         ("Empirically Validated:",
-         "Validated through 30 automated Pytest tests, 400-device scalability benchmarking, and scripted fault-injection scenarios confirming zero data drops."),
+         "Validated through comprehensive Pytest test suite, 400-device scalability benchmarking, and scripted fault-injection scenarios."),
         ("Scope & System Boundaries:",
          "Implemented as an educational prototype using physical laptop OS metrics (psutil) and simulated enterprise switches/routers without proprietary ASIC hardware."),
     ]
@@ -377,8 +377,8 @@ def slide6(doc):
 
     rr(p, 36, 425, 410, 52, C("0f2a52"), border=C("1e3a6e"))
     txt(p, 48, 445, "Core Architectural Contribution:", fs=10.5, fn="hebo", color=C("fca5a5"))
-    txt(p, 48, 463, "Demonstrates high-resolution, sub-second network observability via push streaming.",
-        fs=10, fn="helv", color=C("cbd5e1"))
+    txt(p, 48, 463, "Demonstrates near-real-time network monitoring with 2-second telemetry sampling and low-latency gRPC delivery.",
+        fs=9.5, fn="helv", color=C("cbd5e1"))
 
     line(p, 480, 50, 480, H - 30, C("1e3a5f"), 1.5)
 
@@ -390,7 +390,7 @@ def slide6(doc):
     rr(p, 515, 145, 445, 85, C("0f2a52"), border=C("1e3a6e"))
     txt(p, 530, 168, "Project Code & Reproducibility", fs=11.5, fn="hebo", color=C("7dd3fc"))
     txt(p, 530, 188, "https://github.com/Rajkamal065/network-telemetry", fs=11, fn="helv", color=WHITE)
-    txt(p, 530, 210, "Automated Test Suite:  python -m pytest tests/ -v  (30/30 passed)", fs=10, fn="helv", color=C("4ade80"))
+    txt(p, 530, 210, "Automated Test Suite:  python -m pytest tests/ -v  (verified unit & integration tests)", fs=9.5, fn="helv", color=C("4ade80"))
 
     txt(p, 515, 258, "Team T018  |  CS331 Computer Networks", fs=11.5, fn="hebo", color=C("94a3b8"))
     members = [

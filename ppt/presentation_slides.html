@@ -382,14 +382,14 @@
     <div class="lead-text">
       This project builds a standardized, high-performance network telemetry framework based on <strong>RFC 9232</strong>. 
       It replaces slow, pull-based polling with real-time <strong>push streaming via gRPC</strong>, transporting bandwidth utilization, 
-      round-trip latency, and interface metrics from edge devices directly to a central monitoring backend.
+      TCP connection latency, and interface metrics from edge devices directly to a central monitoring backend.
     </div>
 
     <div class="grid-2col">
       <div>
         <div class="section-title section-red">Expected Outcomes</div>
         <ul class="bullet-list">
-          <li><strong>Real-Time Monitoring</strong>: Live sub-second dashboards showing live bandwidth utilization and latency trends across devices.</li>
+          <li><strong>Real-Time Monitoring</strong>: Live dashboards showing live bandwidth utilization and latency trends across devices with 2-second updates.</li>
           <li><strong>Threshold-Based Alerting</strong>: Instant detection of link saturation (&gt;80%) and latency spikes (&gt;50ms) with anti-flapping hysteresis.</li>
           <li><strong>Historical Access & Export</strong>: Queryable metric storage via REST APIs and one-click CSV export for offline analysis.</li>
           <li><strong>Scalable Push Telemetry</strong>: Asynchronous ingestion handling concurrent data streams without telemetry loss.</li>
@@ -406,7 +406,7 @@
         <p style="font-size: 15px; color: #334155; line-height: 1.6;">
           <strong>gRPC & Protocol Buffers</strong> (proto3 HTTP/2 streaming), <strong>Python 3.12</strong>, <strong>FastAPI</strong>, 
           <strong>SQLite3</strong> (WAL mode + async batch queue), <strong>psutil</strong> (OS interface counters), 
-          <strong>Vanilla JS & HTML5 Canvas</strong>, <strong>Pytest</strong> (30 test cases).
+          <strong>Vanilla JS & HTML5 Canvas</strong>, <strong>Pytest</strong> (automated test suite).
         </p>
       </div>
     </div>
@@ -440,7 +440,7 @@
           <div class="arch-block-sub">
             • Persistent HTTP/2 client stream<br>
             • Compact binary Protobuf (~72 bytes/msg)<br>
-            • 1-second continuous telemetry push
+            • 2-second continuous telemetry push (1-second in scalability tests)
           </div>
         </div>
 
@@ -550,7 +550,7 @@
       <div class="card-box">
         <div class="section-title section-red">Performance</div>
         <p style="font-size: 15px; line-height: 1.5; color: #334155;">
-          Sub-second edge-to-dashboard latency. Compact Protobuf payload consumes <strong>~72 bytes</strong> per message (vs <strong>~228 bytes</strong> JSON), reducing telemetry transport overhead by <strong>~68%</strong>.
+          Low-latency edge-to-dashboard processing. Compact Protobuf payload consumes <strong>~72 bytes</strong> per message (vs <strong>~228 bytes</strong> JSON), reducing telemetry transport overhead by <strong>~68%</strong>.
         </p>
       </div>
 

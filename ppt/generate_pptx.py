@@ -160,7 +160,7 @@ p.font.bold = True
 p.font.color.rgb = NAVY
 
 p = tf.add_paragraph()
-p.text = "1. Bandwidth Utilization: Real-time link capacity consumption (0% to 100%)\n2. Throughput Rates: Ingress and egress bitrates in Mbit/s\n3. Round-Trip Latency: End-to-end TCP connection response time in ms\n4. Interface Health: Monitoring packet errors, discards, and dropped frames"
+p.text = "1. Bandwidth Utilization: Real-time link capacity consumption (0% to 100%)\n2. Throughput Rates: Ingress and egress bitrates in Mbit/s\n3. TCP Connection Latency: Time required to establish a TCP connection to a configured remote server\n4. Interface Health: Monitoring packet errors, discards, and dropped frames"
 p.font.size = Pt(10)
 p.font.color.rgb = DARK
 
@@ -199,7 +199,7 @@ delivs = [
     "2. Asynchronous backend ingestion pipeline with decoupled storage queue",
     "3. Threshold-based alerting engine with anti-flapping hysteresis logic",
     "4. Real-time web dashboard, REST query APIs, and CSV/JSON export capability",
-    "5. Automated test suite with 30 passing unit and integration test cases"
+    "5. Automated unit and integration tests covering ingestion, alert logic, APIs and agent behavior"
 ]
 for d in delivs:
     p = tf.add_paragraph()
@@ -256,17 +256,30 @@ p.font.bold = True
 p.font.color.rgb = BLUE
 
 dash_items = [
-    "KPI Health Overview:\nInstant summary cards displaying reachable device count (6/6), active alert counts, total throughput (1.65 Gbit/s), and average latency.\n",
-    "Interface Utilization Table:\nTabular monitoring of routers, switches, and hosts with live bitrates, round-trip latency, packet loss, and animated utilization gauges.\n",
+    "KPI Health Overview:\nInstant summary cards displaying reachable device count, active alerts, aggregated live bitrates, and round-trip latency.\n",
+    "Interface Utilization Table:\nTabular monitoring of routers, switches, and hosts with live bitrates, latency, packet loss, and animated utilization gauges.\n",
     "Dynamic Sub-0.1% Precision:\nCorrectly preserves sub-0.1% utilization on idle links rather than rounding down to zero, maintaining telemetry continuity.\n",
     "Canvas Trend Visualizations:\nHardware-accelerated HTML5 canvas line graphs plotting Bandwidth Usage, Latency, and Throughput with smooth 2-second updates.\n",
-    "Historical Data Export:\nOne-click CSV export engine generating comprehensive, audit-ready telemetry logs for offline analysis in under 0.6 seconds."
+    "Historical Data Export:\nOne-click CSV export engine generating comprehensive, audit-ready telemetry logs for offline analysis."
 ]
 for item in dash_items:
     p = tf.add_paragraph()
     p.text = "• " + item
     p.font.size = Pt(10)
     p.font.color.rgb = DARK
+
+topoBox = s4.shapes.add_textbox(Inches(0.6), Inches(5.6), Inches(7.0), Inches(1.4))
+ttf = topoBox.text_frame
+ttf.word_wrap = True
+tp1 = ttf.paragraphs[0]
+tp1.text = "Experimental Testbed Topology:"
+tp1.font.size = Pt(11)
+tp1.font.bold = True
+tp1.font.color.rgb = GREEN
+tp2 = ttf.add_paragraph()
+tp2.text = "• 1 Physical Host Node: Live OS network counters sampled via psutil with active TCP connection probing\n• 5 Simulated Network Nodes: 2 core routers, 2 edge switches, 1 branch router with scripted congestion cycles\n• Sampling Cadence: Agents sample every 2 seconds by default (1 second in scalability experiments); dashboard refreshes every 2 seconds"
+tp2.font.size = Pt(9.5)
+tp2.font.color.rgb = DARK
 
 # ==========================================
 # SLIDE 5: Testing & Results
@@ -275,10 +288,10 @@ s5 = prs.slides.add_slide(blank_layout)
 add_header(s5, "Experimental Evaluation & Results", 5)
 
 cards = [
-    ("400 Devices", "0 Dropped Packets", "Tested with 400 concurrent simulated devices at 1 sample/s with zero data loss.", BLUE),
+    ("400 Devices", "0 Samples Dropped", "400 simulated devices benchmarked with zero telemetry samples dropped by the pipeline.", BLUE),
     ("2.8 Seconds", "Mean Alert Time", "Injected congestion incidents were detected and alerted in an average of 2.8 seconds.", RED),
     ("71% Reduction", "Flapping Suppression", "Hysteresis state machine eliminated transient noise, cutting false alerts from 101/hr to 29.6/hr.", GREEN),
-    ("30 / 30 Passed", "Automated Tests", "100% test pass rate across Protobuf schemas, database queues, alert logic, and REST APIs.", PURPLE),
+    ("Pytest Suite", "Automated Tests", "Unit and integration tests covering ingestion, alert logic, APIs and agent behavior.", PURPLE),
 ]
 for i, (bignum, label, desc, col) in enumerate(cards):
     card = s5.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6 + i * 3.1), Inches(1.3), Inches(2.85), Inches(1.2))
@@ -315,7 +328,7 @@ p.font.size = Pt(12)
 p.font.bold = True
 p.font.color.rgb = RGBColor(255, 255, 255)
 p2 = stf.add_paragraph()
-p2.text = "1. High Throughput & Zero Loss: The decoupled queue architecture sustains 400 samples/s with zero dropped packets and p95 latency under 26 ms.\n2. Alert Reliability: Hysteresis evaluation accurately isolates sustained congestion from transient noise, resolving automatically post-recovery."
+p2.text = "1. High Throughput & Zero Loss: The decoupled queue architecture sustains 400 samples/s with zero dropped telemetry samples and p95 latency under 26 ms.\n2. Alert Reliability: Hysteresis evaluation accurately isolates sustained congestion from transient noise, resolving automatically post-recovery."
 p2.font.size = Pt(9.5)
 p2.font.color.rgb = RGBColor(147, 197, 253)
 
@@ -340,18 +353,29 @@ p.font.color.rgb = RGBColor(255, 255, 255)
 concs = [
     "Delivered Pipeline: A modular network telemetry framework implementing RFC 9232 principles to collect, transport, store, and visualize performance metrics in real time.",
     "High-Speed Streaming: Replaces legacy SNMP pull polling with lightweight gRPC HTTP/2 push streaming using compact Protocol Buffers (~72 bytes/sample).",
-    "Empirically Validated: Validated through 30 automated Pytest tests, 400-device scalability benchmarking, and scripted fault-injection scenarios confirming zero data drops.",
+    "Empirically Validated: Validated through comprehensive Pytest test suite, 400-device scalability benchmarking, and scripted fault-injection scenarios.",
     "Scope & System Boundaries: Implemented as an educational prototype using physical laptop OS metrics (psutil) and simulated enterprise switches/routers without proprietary ASIC hardware."
 ]
 for item in concs:
     p = tf.add_paragraph()
     p.text = "• " + item
-    p.font.size = Pt(10.5)
+    p.font.size = Pt(10)
     p.font.color.rgb = RGBColor(203, 213, 225)
 
 p = tf.add_paragraph()
+p.text = "\nCore Contribution:"
+p.font.size = Pt(12)
+p.font.bold = True
+p.font.color.rgb = RGBColor(252, 165, 165)
+
+p = tf.add_paragraph()
+p.text = "Demonstrates near-real-time network monitoring with 2-second telemetry sampling and low-latency gRPC delivery."
+p.font.size = Pt(10)
+p.font.color.rgb = RGBColor(203, 213, 225)
+
+p = tf.add_paragraph()
 p.text = "\nFuture Work:"
-p.font.size = Pt(13)
+p.font.size = Pt(12)
 p.font.bold = True
 p.font.color.rgb = RGBColor(125, 211, 252)
 
@@ -364,7 +388,7 @@ futures = [
 for f in futures:
     p = tf.add_paragraph()
     p.text = f
-    p.font.size = Pt(10)
+    p.font.size = Pt(9.5)
     p.font.color.rgb = RGBColor(148, 163, 184)
 
 rightBox6 = s6.shapes.add_textbox(Inches(7.0), Inches(0.8), Inches(5.7), Inches(6.0))
@@ -393,7 +417,7 @@ p.font.size = Pt(11)
 p.font.color.rgb = RGBColor(255, 255, 255)
 
 p = tf.add_paragraph()
-p.text = "Automated Test Suite: python -m pytest tests/ -v (30/30 passed)\n"
+p.text = "Automated Test Suite: python -m pytest tests/ -v (verified unit & integration tests)\n"
 p.font.size = Pt(10)
 p.font.color.rgb = RGBColor(74, 222, 128)
 
