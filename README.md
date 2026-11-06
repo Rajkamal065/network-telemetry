@@ -6,7 +6,7 @@
 
 ---
 
-## 👥 Team Members
+## Team Members
 
 | Name | Roll Number | Primary Contribution |
 | :--- | :--- | :--- |
@@ -19,7 +19,7 @@
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 In accordance with the Project 2 submission requirements, the repository is structured as follows:
 
@@ -55,7 +55,7 @@ network-telemetry/
 
 ---
 
-## ⚡ Quickstart Guide
+## Quickstart Guide
 
 ### 1. Prerequisites
 - Python 3.10+ (tested on Python 3.12)
@@ -103,7 +103,7 @@ python -m pytest tests/ -v
 
 ---
 
-## 📊 System Architecture & RFC 9232 Compliance
+## System Architecture & RFC 9232 Compliance
 
 The framework implements the continuous push telemetry model defined in **RFC 9232** (*Network Telemetry Framework*):
 
@@ -143,7 +143,7 @@ The framework implements the continuous push telemetry model defined in **RFC 92
 
 ---
 
-## 📈 Key Quantitative Experimental Findings
+## Key Quantitative Experimental Findings
 
 | Metric / Benchmark | Result | Evaluation Significance |
 | :--- | :--- | :--- |
@@ -155,9 +155,9 @@ The framework implements the continuous push telemetry model defined in **RFC 92
 
 ---
 
-## 📜 Links to Submission Artifacts
+## Links to Submission Artifacts
 
-- 📑 **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf) *(Updated with Appendix B Prompts Table, 9 Pages)*
-- 🖥️ **Presentation Slides (PPTX)**: [ppt/Network_Telemetry_Presentation.pptx](./ppt/Network_Telemetry_Presentation.pptx)
-- 📄 **Presentation Slides (PDF)**: [ppt/Network_Telemetry_Presentation.pdf](./ppt/Network_Telemetry_Presentation.pdf)
-- 🤖 **AI Prompts & Development Dialogue**: [ai/README.md](./ai/README.md)
+- **Report PDF**: [report/Network_Telemetry_Report.pdf](./report/Network_Telemetry_Report.pdf) *(Updated with Appendix B Prompts Table, 9 Pages)*
+- **Presentation Slides (PPTX)**: [ppt/Network_Telemetry_Presentation.pptx](./ppt/Network_Telemetry_Presentation.pptx)
+- **Presentation Slides (PDF)**: [ppt/Network_Telemetry_Presentation.pdf](./ppt/Network_Telemetry_Presentation.pdf)
+- **AI Prompts & Development Dialogue**: [ai/README.md](./ai/README.md)
