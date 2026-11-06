@@ -25,3 +25,4 @@ python generate_presentation_pdf.py
 python generate_pptx.py
 ```
 *(Dependencies: `pymupdf`, `python-pptx`, `Pillow`)*
+
