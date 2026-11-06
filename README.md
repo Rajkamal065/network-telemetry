@@ -29,13 +29,15 @@ network-telemetry/
 ├── code/                          # All source code, tests, and configuration
 │   ├── proto/                     # Protocol Buffers schema (telemetry.proto)
 │   ├── gen/                       # Generated Python gRPC stubs
-│   ├── telemetry/                 # Core models, validation, alert logic, DB storage
+│   ├── telemetry/                 # Configuration, proto loader, and system utilities
 │   ├── agents/                    # Host (psutil) and simulated device producers
 │   ├── backend/                   # gRPC receiver, FastAPI REST server, live dashboard
 │   ├── tests/                     # 30 automated Pytest test cases (100% passing)
 │   ├── deploy/                    # Containerization manifests and Docker Compose
 │   ├── docs/                      # RFC 9232 architectural design specification
 │   ├── run_demo.py                # One-command full system demo launcher
+│   ├── run_backend.py             # Dedicated backend server launcher
+│   ├── run_agents.py              # Dedicated multi-agent launcher
 │   ├── requirements.txt           # Production dependencies
 │   ├── requirements-dev.txt       # Testing dependencies
 │   └── README.md                  # Detailed code execution instructions
@@ -44,11 +46,7 @@ network-telemetry/
 │   └── README.md                  # Report overview, abstract, and section index
 ├── ppt/                           # Presentation slide decks
 │   ├── Network_Telemetry_Presentation.pptx # Submittable 6-slide deck (.pptx)
-│   ├── Network_Telemetry_Presentation.pdf  # High-resolution widescreen slide deck (PDF)
-│   ├── generate_presentation_pdf.py       # Reproducible PDF slide generator script
-│   ├── generate_pptx.py                   # Reproducible PPTX slide generator script
-│   ├── presentation_slides.html           # Standalone interactive HTML presentation
-│   └── README.md                  # Slide outline, topics, and presenter notes
+│   └── Network_Telemetry_Presentation.pdf  # High-resolution widescreen slide deck (PDF)
 └── ai/                            # Transparent AI prompts and development dialogue
     ├── README.md                  # Comprehensive student learning inquiry and code generation dialogue
     └── raw_prompts.md             # Sequential chronological archive of all project prompts
@@ -148,7 +146,7 @@ The framework implements the continuous push telemetry model defined in **RFC 92
 
 | Metric / Benchmark | Result | Evaluation Significance |
 | :--- | :--- | :--- |
-| **Max Concurrent Devices** | **400 devices** | Zero dropped packets at 400 samples/sec; p95 latency remains below 26 ms. |
+| **Max Concurrent Devices** | **400 devices** | Zero telemetry samples dropped at 400 samples/sec; p95 latency remains below 26 ms. |
 | **Payload Compactness** | **~72 bytes/sample** | 85.6% bandwidth reduction compared to verbose text/JSON polling payloads. |
 | **Congestion Alert Time** | **2.8 seconds** | Fast detection of link saturation within 1 to 2 sampling cycles. |
 | **Flapping Suppression** | **71% reduction** | Consecutive-breach hysteresis reduced false alert triggers from 101/hr to 29.6/hr. |

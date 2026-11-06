@@ -20,7 +20,7 @@ This folder contains the complete, final IEEE 2-column project report for the **
 3. **Implementation Details**: Protocol Buffers message schemas, multithreaded collector design, WAL database persistence, and FastAPI asynchronous backend.
 4. **Experimental Setup & Testbed**: 1 physical host + 5 simulated enterprise routers and switches, parameterized traffic patterns, and scripted congestion injection.
 5. **Evaluation & Results**:
-   - Experiment E1: Scalability under load (tested up to 400 devices with zero packet drops).
+   - Experiment E1: Scalability under load (tested up to 400 devices with zero telemetry sample drops).
    - Experiment E2: Metric resolution and sub-0.1% bandwidth fidelity.
    - Experiment E3: Congestion detection and hysteresis recovery timing (2.8s mean detection latency).
    - Experiment E4: Storage footprint and downsampling efficiency.

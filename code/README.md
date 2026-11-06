@@ -6,18 +6,24 @@ This directory contains the complete source code implementation of the **Real-Ti
 
 - `proto/`: Protocol Buffers schema definition (`telemetry.proto`) specifying the 72-byte binary streaming contract.
 - `gen/`: Precompiled Python gRPC stubs (`telemetry_pb2.py`, `telemetry_pb2_grpc.py`).
-- `telemetry/`: Core domain models, telemetry validation logic, sliding-window hysteresis alerting engine, and SQLite WAL database storage.
+- `telemetry/`: Configuration, protocol buffer loader, and network utility helpers (`config.py`, `protoloader.py`, `util.py`).
 - `agents/`: Dual-mode telemetry producers:
-  - `host_collector.py`: Collects physical OS network interface statistics via `psutil` and active TCP latency probing.
-  - `simulated_collector.py`: Generates realistic multi-tier enterprise router and switch traffic patterns with synthetic congestion injection.
-  - `run_agents.py`: Orchestrates agent lifecycle and streaming over persistent gRPC HTTP/2 channels.
-- `backend/`: Fast, asynchronous telemetry receiver and presentation server:
-  - `grpc_server.py`: High-throughput gRPC collector servicing client push streams.
+  - `laptop.py`: Collects physical OS network interface statistics via `psutil` and active TCP latency probing.
+  - `simulated.py`: Generates realistic multi-tier enterprise router and switch traffic patterns with synthetic congestion injection.
+  - `base.py`: Abstract base class and gRPC stream lifecycle management.
+  - `run_agents.py`: Agent cluster process runner.
+- `backend/`: High-throughput telemetry ingestion and presentation server:
+  - `grpc_server.py`: High-performance gRPC receiver servicing push telemetry streams.
+  - `ingest.py`: Thread-safe decoupled in-memory buffer queue (capacity 20,000).
+  - `db.py`: SQLite batch persistence engine using Write-Ahead Logging (WAL).
+  - `alerts.py`: Anti-flapping hysteresis alert evaluation engine (2-cycle thresholding).
   - `api.py`: FastAPI asynchronous REST endpoints (`/api/latest`, `/api/history`, `/api/alerts`, `/api/export`, `/metrics`).
-  - `web/`: Real-time web dashboard with hardware-accelerated HTML5 canvas time-series graphs.
+  - `static/dashboard.html`: Real-time web dashboard with hardware-accelerated HTML5 canvas time-series graphs.
 - `tests/`: 30 automated test cases verifying schema validation, queue overflow resilience, hysteresis state transitions, REST endpoints, and gRPC streaming recovery.
-- `deploy/`: Containerization manifests and systemd unit configurations.
-- `run_demo.py`: One-click supervisor process launching the backend and multi-agent cluster concurrently.
+- `deploy/`: Containerization manifests (Docker Compose) and Prometheus/Grafana configurations.
+- `run_demo.py`: One-command launcher starting backend and agents concurrently.
+- `run_backend.py`: Dedicated backend process launcher.
+- `run_agents.py`: Dedicated agent process launcher.
 
 ## Setup & Execution
 
